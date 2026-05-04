@@ -1,0 +1,224 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Глобальный сброс для фикса горизонтального скролла */
+html, body, #root {
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Фикс для длинных email'ов и ссылок в профиле */
+.break-text {
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.skeleton-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.pulse {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: pulse-animation 1.5s infinite;
+  border-radius: 10px;
+}
+
+@keyframes pulse-animation {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-image { height: 200px; width: 100%; }
+.skeleton-title { height: 20px; width: 70%; }
+.skeleton-text { height: 15px; width: 40%; }
+.skeleton-price { height: 30px; width: 60px; }
+.skeleton-btn { height: 40px; width: 40px; border-radius: 12px; }
+
+/* ============================================================
+   БЛОК ЖИВЫХ АНИМАЦИЙ (КАТЕГОРИЯ: ПРАЗДНИК И ДИНАМИКА)
+   ============================================================ */
+
+/* 1. Плавное появление карточек при загрузке страницы */
+.product-card {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2. Пружинистое появление модального окна (Pop-up) */
+.modal-content {
+  animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalIn {
+  from { 
+    transform: scale(0.7); 
+    opacity: 0; 
+  }
+  to { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+}
+
+/* 3. Размытие заднего фона при открытой модалке (эффект Apple) */
+.modal-overlay {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* 4. Класс "прыжка" для иконки корзины (Bump) */
+.bump {
+  animation: bump 0.4s ease-out;
+}
+
+@keyframes bump {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* 5. Ховер-эффект на кнопки и изображения */
+.product-card img {
+  transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.product-card:hover img {
+  transform: scale(1.05);
+}
+
+.modal-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Анимация для кнопок управления количеством (+/-) */
+.quantity-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quantity-btn:hover {
+  background-color: #e8e8e8 !important;
+  transform: translateY(-1px);
+}
+
+.quantity-btn:active {
+  transform: scale(0.9); /* Эффект нажатия */
+}
+
+/* Анимация для кнопки удаления (мусорка) */
+.delete-btn {
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  background-color: #fff0f0 !important;
+  color: #ff0000 !important;
+  transform: rotate(8deg) scale(1.1);
+}
+
+/* Контейнер родителя */
+.brands-parent {
+  position: relative;
+  display: inline-block;
+}
+
+/* Сама выпадашка */
+.brands-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 200px;
+  background: rgba(255, 255, 255, 0.85); /* Полупрозрачный фон */
+  backdrop-filter: blur(12px); /* Эффект размытия заднего плана */
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 
+              0 0 0 1px rgba(0, 0, 0, 0.02);
+  padding: 8px;
+  z-index: 1000;
+  
+  /* Состояние по умолчанию */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Плавный вылет */
+  pointer-events: none;
+}
+
+/* Появление при наведении */
+.brands-parent:hover .brands-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Элементы списка */
+.brand-item-ui {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.brand-item-ui:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: translateX(4px); /* Легкий сдвиг вправо при наведении */
+}
+
+/* Небольшой индикатор активного бренда */
+.brand-item-ui.active {
+  background: #000;
+  color: #fff;
+}
+
+/* "Мостик" между кнопкой и окном, чтобы ховер не пропадал */
+.brands-parent::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 15px;
+}
