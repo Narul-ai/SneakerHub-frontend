@@ -48,7 +48,7 @@ function MainShop() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await axios.get('http://localhost:5000/api/products');
+        const { data } = await axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/products');
         setProducts(data);
       } catch (error) {
         toast.error("Ошибка соединения с базой данных 🌐");

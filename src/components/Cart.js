@@ -34,7 +34,7 @@ function Cart() {
         image: item.image || ""
       }));
 
-      await axios.post('http://localhost:5000/api/orders', {
+      await axios.post('http://https://sneakerhub-vsiq.onrender.com:5000/api/orders', {
         items: orderItems,
         totalPrice: totalPrice,
         shippingInfo: {

@@ -30,7 +30,7 @@ const Admin = () => {
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/api/admin/upload', formData, {
+      const res = await axios.post('http://https://sneakerhub-vsiq.onrender.com:5000/api/admin/upload', formData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data' 
@@ -85,8 +85,8 @@ const Admin = () => {
       if (!token) { navigate('/login'); return; }
       const headers = { 'Authorization': `Bearer ${token}` };
       const [ord, prod] = await Promise.all([
-        axios.get('http://localhost:5000/api/orders', { headers }),
-        axios.get('http://localhost:5000/api/products')
+        axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/orders', { headers }),
+        axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/products')
       ]);
       setOrders(ord.data); setProducts(prod.data); setLoading(false);
     } catch (err) { setError("Ошибка загрузки"); setLoading(false); }
@@ -97,7 +97,7 @@ const Admin = () => {
   const handleUpdateOrderStatus = async (id, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:5000/api/orders/${id}/status`, { status: newStatus }, { headers: { 'Authorization': `Bearer ${token}` } });
+      await axios.patch(`http://https://sneakerhub-vsiq.onrender.com:5000/api/orders/${id}/status`, { status: newStatus }, { headers: { 'Authorization': `Bearer ${token}` } });
       setOrders(prev => prev.map(o => o._id === id ? { ...o, status: newStatus } : o));
     } catch (err) { setError("Ошибка обновления статуса"); }
   };
@@ -111,8 +111,8 @@ const Admin = () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
-      if (editingId) { await axios.put(`http://localhost:5000/api/admin/products/${editingId}`, data, { headers }); }
-      else { await axios.post('http://localhost:5000/api/admin/products', data, { headers }); }
+      if (editingId) { await axios.put(`http://https://sneakerhub-vsiq.onrender.com:5000/api/admin/products/${editingId}`, data, { headers }); }
+      else { await axios.post('http://https://sneakerhub-vsiq.onrender.com:5000/api/admin/products', data, { headers }); }
       setNewProduct({ title: '', price: '', oldPrice: '', images: '', description: '', category: 'sneakers' });
       setEditingId(null); fetchData();
     } catch (err) { setError("Ошибка сохранения"); }
@@ -219,7 +219,7 @@ const Admin = () => {
             <div style={{ color: '#00c853', fontWeight: 900, fontSize: '18px', marginBottom: '10px' }}>${p.price}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => { setEditingId(p._id); setNewProduct({...p, images: p.images.join(', ')}); window.scrollTo(0,0); }} style={{ flex: 1, background: '#2979ff20', color: '#2979ff', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}>ИЗМЕНИТЬ</button>
-              <button onClick={async () => { if(window.confirm("Удалить?")) { await axios.delete(`http://localhost:5000/api/admin/products/${p._id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }); fetchData(); } }} style={{ flex: 1, background: '#ff174420', color: '#ff1744', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}>УДАЛИТЬ</button>
+              <button onClick={async () => { if(window.confirm("Удалить?")) { await axios.delete(`http://https://sneakerhub-vsiq.onrender.com:5000/api/admin/products/${p._id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }); fetchData(); } }} style={{ flex: 1, background: '#ff174420', color: '#ff1744', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}>УДАЛИТЬ</button>
             </div>
           </div>
         ))}
