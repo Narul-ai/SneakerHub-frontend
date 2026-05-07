@@ -35,7 +35,7 @@ function ProductCard({ product, onAddToCart, onShowDetails }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://https://sneakerhub-vsiq.onrender.com:5000/api/auth/wishlist', 
+      const res = await axios.post('https://sneakerhub-vsiq.onrender.com/api/auth/wishlist', 
         { productId: product._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );

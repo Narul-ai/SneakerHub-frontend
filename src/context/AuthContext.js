@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
           // Проверяем токен на бэкенде
-          const { data } = await axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/auth/profile');
+          const { data } = await axios.get('https://sneakerhub-vsiq.onrender.com/api/auth/profile');
           setUser(data); 
         } catch (error) {
           console.error("Сессия истекла или сервер недоступен");

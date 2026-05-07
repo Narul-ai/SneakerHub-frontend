@@ -152,7 +152,7 @@ const AuthChecker = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await fetch('http://https://sneakerhub-vsiq.onrender.com:5000/api/auth/profile', {
+          const response = await fetch('https://sneakerhub-vsiq.onrender.com/api/auth/profile', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (response.ok) {

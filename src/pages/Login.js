@@ -28,7 +28,7 @@ function Login() {
       // Лог для отладки — увидишь в консоли браузера, что именно улетает
       console.log(`Отправка на ${endpoint}:`, requestData);
 
-      const { data } = await axios.post(`http://https://sneakerhub-vsiq.onrender.com:5000${endpoint}`, requestData);
+      const { data } = await axios.post(`https://sneakerhub-vsiq.onrender.com${endpoint}`, requestData);
       
       // Сохраняем данные в контекст (токен и юзера)
       login(data.user, data.token);

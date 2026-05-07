@@ -32,8 +32,8 @@ function Profile() {
 
       try {
         const [ordersRes, wishlistRes] = await Promise.all([
-          axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/orders/my-orders', config),
-          axios.get('http://https://sneakerhub-vsiq.onrender.com:5000/api/auth/wishlist', config)
+          axios.get('https://sneakerhub-vsiq.onrender.com/api/orders/my-orders', config),
+          axios.get('https://sneakerhub-vsiq.onrender.com/api/auth/wishlist', config)
         ]);
         setOrders(ordersRes.data);
         setWishlist(wishlistRes.data);
