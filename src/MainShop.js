@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// Иконки
+// Icons
 import { HiOutlineUser, HiOutlineSearch, HiChevronDown, HiOutlineAdjustments } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
-// Твои компоненты
+// Core Components
 import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
 import Cart from './components/Cart';
@@ -19,7 +19,7 @@ function MainShop() {
   const { user, isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
-  // --- 1. ЛОГИКА АДАПТИВНОСТИ (СЛУШАТЕЛЬ) ---
+  // --- 1. RESPONSIVENESS LOGIC (WINDOW LISTENER) ---
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -31,39 +31,42 @@ function MainShop() {
   const isMobile = windowWidth < 850;
   const isSmallMobile = windowWidth < 500;
 
-  // --- СОСТОЯНИЯ ---
+  // --- STATE MANAGEMENT ---
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState("ВСЕ");
+  const [activeCategory, setActiveCategory] = useState("ALL");
   const [activeBrand, setActiveBrand] = useState(null); 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [onlySale, setOnlySale] = useState(false);
 
   const brands = ["ADIDAS", "NIKE", "JORDAN", "PUMA", "REEBOK", "NEW BALANCE"];
+  
+  // Dynamic API Base URL from environment variables
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
 
-  // Загрузка данных
+  // Data Fetching
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await axios.get('https://sneakerhub-vsiq.onrender.com/api/products');
+        const { data } = await axios.get(`${API_BASE}/api/products`);
         setProducts(data);
       } catch (error) {
-        toast.error("Ошибка соединения с базой данных 🌐");
+        toast.error("Database connection failure 🌐");
       } finally {
         setTimeout(() => setIsLoading(false), 600);
       }
     };
     fetchProducts();
-  }, []);
+  }, [API_BASE]);
 
-  // Умная фильтрация
+  // Smart Filtering Engine
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = activeCategory === "ВСЕ" || p.category?.toUpperCase() === activeCategory;
+      const matchesCategory = activeCategory === "ALL" || p.category?.toUpperCase() === activeCategory;
       const matchesPrice = p.price <= maxPrice;
       const matchesSale = onlySale ? (Number(p.oldPrice) > Number(p.price)) : true;
       const matchesBrand = !activeBrand || 
@@ -74,10 +77,31 @@ function MainShop() {
   }, [products, searchTerm, activeCategory, maxPrice, onlySale, activeBrand]);
 
   const categories = useMemo(() => 
-    ["ВСЕ", ...new Set(products.map(p => p.category?.toUpperCase()).filter(Boolean))],
+    ["ALL", ...new Set(products.map(p => p.category?.toUpperCase()).filter(Boolean))],
   [products]);
 
-  // --- 2. ОБНОВЛЕННЫЕ АДАПТИВНЫЕ СТИЛИ ---
+  // Helper to completely clean up user selection filters
+  const handleResetAllFilters = () => {
+    setSearchTerm("");
+    setActiveCategory("ALL");
+    setActiveBrand(null);
+    setMaxPrice(1500);
+    setOnlySale(false);
+  };
+
+  // --- 2. DYNAMIC STYLES AND INJECTIONS ---
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+      .brand-item-ui:hover { background: rgba(0, 200, 83, 0.08) !important; color: #00c853 !important; }
+      .brand-item-ui.active { background: #00c853 !important; color: #fff !important; }
+      .brands-dropdown { display: none; opacity: 0; transform: translateY(10px); transition: all 0.25s ease-in-out; }
+      .brands-parent:hover .brands-dropdown { display: block; opacity: 1; transform: translateY(0); }
+    `;
+    document.head.appendChild(styleSheet);
+    return () => document.head.removeChild(styleSheet);
+  }, []);
+
   const styles = {
     page: { 
       padding: isMobile ? '15px 3%' : '30px 5%', 
@@ -89,7 +113,7 @@ function MainShop() {
     header: { 
       display: 'flex', 
       flexDirection: isMobile ? 'column' : 'row',
-      justifyContent: 'space-between', 
+ justifyContent: 'space-between',
       alignItems: 'center', 
       gap: isMobile ? '20px' : '0',
       marginBottom: '40px', 
@@ -185,7 +209,8 @@ function MainShop() {
       display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', 
       gap: isMobile ? '30px' : '40px' 
     },
-    resultsTitle: { fontSize: isMobile ? '18px' : '22px', fontWeight: '900', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '15px' },
+    gridHeader: { marginBottom: '20px', display: 'flex', alignItems: 'center' },
+    resultsTitle: { fontSize: isMobile ? '18px' : '22px', fontWeight: '900', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '15px', margin: 0 },
     countBadge: { background: '#eee', padding: '4px 12px', borderRadius: '10px', fontSize: '12px', color: '#999' },
     productsGrid: { 
       display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
@@ -211,7 +236,7 @@ function MainShop() {
             <HiOutlineSearch style={styles.searchIcon} />
             <input 
               type="text" 
-              placeholder="Поиск по дропам..." 
+              placeholder="Search current drops..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={styles.searchInput}
@@ -220,7 +245,7 @@ function MainShop() {
 
           <button onClick={() => navigate(isAuthenticated ? '/profile' : '/login')} style={styles.profileBtn}>
             <HiOutlineUser size={18} />
-            <span>{isAuthenticated ? user?.name?.split(' ')[0] : 'LOGIN'}</span>
+            <span>{isAuthenticated ? user?.name?.split(' ')[0] : 'LOG IN'}</span>
           </button>
         </div>
       </header>
@@ -233,7 +258,7 @@ function MainShop() {
               onClick={() => { setActiveCategory(cat); setActiveBrand(null); }} 
               style={{
                 ...styles.catBtn,
-                backgroundColor: activeCategory === cat && !activeBrand ? '#000' : '#fff',
+                backgroundColor: activeCategory === cat && !activeBrand ? '#1a1a1a' : '#fff',
                 color: activeCategory === cat && !activeBrand ? '#fff' : '#1a1a1a',
               }}
             >
@@ -251,7 +276,7 @@ function MainShop() {
               gap: '8px',
               border: '1px solid #eee'
             }}>
-              {activeBrand || "БРЕНДЫ"} <HiChevronDown size={14} />
+              {activeBrand || "BRANDS"} <HiChevronDown size={14} />
             </button>
 
             <div className="brands-dropdown" style={styles.dropdown}>
@@ -259,7 +284,7 @@ function MainShop() {
                 <div 
                   key={brand} 
                   className={`brand-item-ui ${activeBrand === brand ? 'active' : ''}`}
-                  onClick={() => { setActiveBrand(brand); setActiveCategory("ВСЕ"); }}
+                  onClick={() => { setActiveBrand(brand); setActiveCategory("ALL"); }}
                   style={styles.dropdownItem}
                 >
                   {brand}
@@ -268,7 +293,7 @@ function MainShop() {
               ))}
               {activeBrand && (
                 <div onClick={() => setActiveBrand(null)} style={styles.resetBrand}>
-                  СБРОСИТЬ ВЫБОР
+                  RESET SELECTION
                 </div>
               )}
             </div>
@@ -286,10 +311,10 @@ function MainShop() {
               style={styles.rangeInput} 
             />
           </div>
-          <div style={styles.checkGroup}>
+          <div>
             <label style={styles.checkboxLabel}>
-              <input type="checkbox" checked={onlySale} onChange={() => setOnlySale(!onlySale)} />
-              OFFERS %
+              <input type="checkbox" checked={onlySale} onChange={() => setOnlySale(!onlySale)} style={{ accentColor: '#00c853' }} />
+              SPECIAL OFFERS %
             </label>
           </div>
         </div>
@@ -307,6 +332,14 @@ function MainShop() {
           {isLoading ? (
             <div style={styles.productsGrid}>
               {[1, 2, 3, 4, 5, 6].map(n => <SkeletonCard key={n} />)}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0' }}>
+              <p style={{ fontSize: '16px', fontWeight: '700', color: '#555', margin: '0 0 10px 0' }}>No products match your custom filters</p>
+              <p style={{ fontSize: '13px', color: '#aaa', margin: '0 0 20px 0' }}>Try adjusting the price scale or clearing search metrics.</p>
+              <button onClick={handleResetAllFilters} style={{ background: '#1a1a1a', color: '#fff', padding: '12px 24px', borderRadius: '14px', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
+                Clear All Filters
+              </button>
             </div>
           ) : (
             <div style={styles.productsGrid}>
@@ -331,7 +364,7 @@ function MainShop() {
         <ProductModal 
           product={selectedProduct} 
           onClose={() => setSelectedProduct(null)} 
-          onAddToCart={addToCart} // ИСПРАВЛЕНО: Теперь функция передается корректно
+          onAddToCart={addToCart} 
         />
       )}
     </div>

@@ -16,6 +16,9 @@ function ProductModal({ product, onClose, onAddToCart }) {
   const auth = useAuth(); 
   const user = auth?.user || null; 
 
+  // Базовый URL бэкенда из переменных окружения
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
   const [currentImg, setCurrentImg] = useState(0);
   const availableSizes = product?.sizes || [39, 40, 41, 42, 43, 44];
   const [selectedSize, setSelectedSize] = useState(availableSizes[0]);
@@ -63,7 +66,8 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/products/${product._id}/reviews`, {
+      // ИСПРАВЛЕНО: Добавлен полный путь к бэкенду Render через API_BASE
+      const response = await fetch(`${API_BASE}/api/products/${product._id}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,29 +79,41 @@ function ProductModal({ product, onClose, onAddToCart }) {
         })
       });
 
+      // 1. Сначала проверяем статус ответа сервера
+      if (!response.ok) {
+        let errorMessage = `Ошибка сервера: ${response.status}`;
+        try {
+          // Пытаемся прочитать JSON с ошибкой, если бэкенд его прислал
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (_) {
+          // Если там не JSON (например, пустой ответ или HTML при 405), игнорируем ошибку парсинга
+        }
+        alert(errorMessage);
+        return; // Останавливаем выполнение функции
+      }
+
+      // 2. Если дошли сюда, значит response.ok === true. Безопасно парсим JSON
       const data = await response.json();
 
-      if (response.ok) {
-        alert("Отзыв успешно добавлен!");
-        
-        const newReviewObj = data.review || {
-          _id: Date.now().toString(),
-          user: user?._id,
-          name: user?.name || 'Пользователь',
-          rating: newRating,
-          comment: comment,
-          createdAt: new Date().toISOString()
-        };
-        
-        setLocalReviews([newReviewObj, ...localReviews]);
-        setComment('');
-        setNewRating(5);
-      } else {
-        alert(data.message || "Ошибка при отправке");
-      }
+      alert("Отзыв успешно добавлен!");
+      
+      const newReviewObj = data.review || {
+        _id: Date.now().toString(),
+        user: user?._id,
+        name: user?.name || 'Пользователь',
+        rating: newRating,
+        comment: comment,
+        createdAt: new Date().toISOString()
+      };
+      
+      setLocalReviews([newReviewObj, ...localReviews]);
+      setComment('');
+      setNewRating(5);
+
     } catch (error) {
       console.error("Ошибка отправки отзыва:", error);
-      alert("Сервер недоступен");
+      alert("Не удалось отправить отзыв. Проверьте соединение.");
     } finally {
       setIsSubmitting(false);
     }
@@ -108,21 +124,24 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`/api/products/${product._id}/reviews/${reviewId}`, {
+      // ИСПРАВЛЕНО: Добавлен полный путь к бэкенду Render через API_BASE
+      const response = await fetch(`${API_BASE}/api/products/${product._id}/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      // Сначала проверяем успешность ответа, чтобы не падать на json()
+      if (!response.ok) {
+        alert(`Ошибка при удалении: статус ${response.status}`);
+        return;
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
-        alert("Отзыв удален");
-        setLocalReviews(localReviews.filter(rev => rev._id !== reviewId));
-      } else {
-        alert(data.message || "Ошибка при удалении");
-      }
+      alert("Отзыв удален");
+      setLocalReviews(localReviews.filter(rev => rev._id !== reviewId));
     } catch (error) {
       console.error("Ошибка удаления:", error);
       alert("Не удалось удалить отзыв");
@@ -189,7 +208,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                 <>
                   <button className="modal-nav left" onClick={prevImg}><HiChevronLeft /></button>
                   <button className="modal-nav right" onClick={nextImg}><HiChevronRight /></button>
-                </>
+                </                >
               )}
             </div>
             
@@ -243,7 +262,6 @@ function ProductModal({ product, onClose, onAddToCart }) {
               className="modal-action-btn"
               disabled={product.countInStock === 0}
               onClick={() => {
-                // ФИКС: Добавлена проверка на наличие функции
                 if (typeof onAddToCart === 'function') {
                   onAddToCart({ ...product, size: selectedSize });
                   onClose();

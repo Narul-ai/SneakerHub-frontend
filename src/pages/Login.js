@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from 'react-shadow'; // Note: standard axios import used below
+import axiosInstance from 'axios'; 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
@@ -7,8 +8,12 @@ import { useAuth } from '../context/AuthContext';
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false); // Стейт для предотвращения спам-кликов
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Динамический URL бэкенда из переменных окружения
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,6 +22,8 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     
     // Формируем данные: при входе шлем только email и password
@@ -24,16 +31,16 @@ function Login() {
       ? { email: formData.email, password: formData.password } 
       : formData;
 
+    setIsLoading(true);
     try {
-      // Лог для отладки — увидишь в консоли браузера, что именно улетает
-      console.log(`Отправка на ${endpoint}:`, requestData);
+      console.log(`Sending to ${endpoint}:`, requestData);
 
-      const { data } = await axios.post(`https://sneakerhub-vsiq.onrender.com${endpoint}`, requestData);
+      const { data } = await axiosInstance.post(`${API_BASE}${endpoint}`, requestData);
       
       // Сохраняем данные в контекст (токен и юзера)
       login(data.user, data.token);
       
-      toast.success(`Добро пожаловать, ${data.user.name}! 😊`);
+      toast.success(`Welcome, ${data.user.name}! 😊`);
       
       // Редирект
       if (data.user.role === 'admin') {
@@ -42,25 +49,26 @@ function Login() {
         navigate('/profile');
       }
     } catch (err) {
-      // Выводим полную ошибку в консоль, чтобы понять причину 401
-      console.error("Ошибка запроса:", err.response?.data);
+      console.error("Request error:", err.response?.data);
       
-      const errorMessage = err.response?.data?.message || 'Ошибка. Проверьте данные.';
+      const errorMessage = err.response?.data?.message || 'An error occurred. Please check your credentials.';
       toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>{isLogin ? 'ВХОД' : 'РЕГИСТРАЦИЯ'}</h2>
+        <h2 style={styles.title}>{isLogin ? 'LOG IN' : 'SIGN UP'}</h2>
         
         <form onSubmit={handleSubmit} style={styles.form}>
           {!isLogin && (
             <input 
               name="name"
               type="text" 
-              placeholder="Имя" 
+              placeholder="Name" 
               style={styles.input}
               value={formData.name}
               onChange={handleChange} 
@@ -71,7 +79,7 @@ function Login() {
           <input 
             name="email" 
             type="email" 
-            placeholder="Email" 
+            placeholder="Email address" 
             style={styles.input}
             value={formData.email}
             onChange={handleChange}
@@ -81,20 +89,28 @@ function Login() {
           <input 
             name="password" 
             type="password" 
-            placeholder="Пароль" 
+            placeholder="Password" 
             style={styles.input}
             value={formData.password}
             onChange={handleChange}
             required
           />
           
-          <button type="submit" style={styles.button}>
-            {isLogin ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ'}
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            style={{
+              ...styles.button,
+              background: isLoading ? '#ccc' : '#000',
+              cursor: isLoading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isLoading ? 'PROCESSING...' : (isLogin ? 'SIGN IN' : 'CREATE ACCOUNT')}
           </button>
         </form>
         
-        <p style={styles.toggleText} onClick={() => setIsLogin(!isLogin)}>
-          {isLogin ? 'Нет аккаунта? Зарегистрируйся' : 'Уже есть аккаунт? Войди'}
+        <p style={styles.toggleText} onClick={() => { if (!isLoading) setIsLogin(!isLogin); }}>
+          {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
         </p>
       </div>
     </div>
@@ -141,10 +157,8 @@ const styles = {
     padding: '15px', 
     borderRadius: '12px', 
     border: 'none', 
-    background: '#000', 
     color: '#fff', 
     fontWeight: 'bold', 
-    cursor: 'pointer', 
     marginTop: '10px', 
     fontSize: '16px',
     transition: '0.3s'

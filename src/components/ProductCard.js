@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { HiOutlinePlusSm, HiChevronLeft, HiChevronRight, HiHeart, HiOutlineHeart } from 'react-icons/hi';
-import { useAuth } from '../context/AuthContext'; // Импортируем наш хук авторизации
+import { useAuth } from '../context/AuthContext'; 
 import './ProductCard.css';
 
 function ProductCard({ product, onAddToCart, onShowDetails }) {
   const [currentImg, setCurrentImg] = useState(0);
-  const { user, setUser } = useAuth(); // Получаем данные пользователя и функцию обновления
+  const { user, setUser } = useAuth(); 
+
+  // Базовый URL бэкенда из переменных окружения
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
 
   // Проверяем, в избранном ли товар (сверяем ID)
   const isWishlisted = user?.wishlist?.some(id => id === product._id || id._id === product._id);
@@ -29,13 +32,13 @@ function ProductCard({ product, onAddToCart, onShowDetails }) {
   const handleWishlist = async (e) => {
     e.stopPropagation(); // Чтобы не открывались детали товара при клике на сердце
     if (!user) {
-      alert("Войдите в аккаунт, чтобы сохранять товары!");
+      alert("Please log in to save items to your wishlist!");
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('https://sneakerhub-vsiq.onrender.com/api/auth/wishlist', 
+      const res = await axios.post(`${API_BASE}/api/auth/wishlist`, 
         { productId: product._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -43,7 +46,7 @@ function ProductCard({ product, onAddToCart, onShowDetails }) {
       // Обновляем состояние пользователя в контексте (массив ID)
       setUser({ ...user, wishlist: res.data });
     } catch (err) {
-      console.error("Ошибка при обновлении избранного:", err);
+      console.error("Error updating wishlist:", err);
     }
   };
 
@@ -94,7 +97,7 @@ function ProductCard({ product, onAddToCart, onShowDetails }) {
         
         <div className="product-info-text">
           <p className="product-category">
-            {product.category ? product.category.toUpperCase() : 'LIFESTYLE'}
+            {product.category ? product.category.toUpperCase() : 'SNEAKERS'}
           </p>
           <h3 className="product-title">{product.title}</h3>
         </div>
@@ -124,6 +127,7 @@ function ProductCard({ product, onAddToCart, onShowDetails }) {
           
           <button 
             className="add-to-cart-btn" 
+            title="Add to Cart"
             onClick={(e) => {
               e.stopPropagation();
               onAddToCart({ ...product, size: selectedSize });

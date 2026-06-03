@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 import { 
   HiOutlineLogout, 
   HiOutlineShoppingBag, 
   HiOutlineClock, 
   HiOutlineHeart,
-  HiOutlineCurrencyDollar // Добавлена новая иконка для статистики
+  HiOutlineCurrencyDollar 
 } from 'react-icons/hi';
 import ProductModal from '../components/ProductModal';
 import ProductCard from '../components/ProductCard';
@@ -21,24 +22,29 @@ function Profile() {
   const { user, logout } = useAuth(); 
   const navigate = useNavigate();
 
+  // Динамический URL бэкенда из переменных окружения
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         setLoading(false);
+        navigate('/login');
         return;
       }
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       try {
         const [ordersRes, wishlistRes] = await Promise.all([
-          axios.get('https://sneakerhub-vsiq.onrender.com/api/orders/my-orders', config),
-          axios.get('https://sneakerhub-vsiq.onrender.com/api/auth/wishlist', config)
+          axios.get(`${API_BASE}/api/orders/my-orders`, config),
+          axios.get(`${API_BASE}/api/auth/wishlist`, config)
         ]);
         setOrders(ordersRes.data);
         setWishlist(wishlistRes.data);
       } catch (err) {
-        console.error("Ошибка загрузки данных:", err);
+        console.error("Error loading profile data:", err);
+        toast.error("Failed to fetch profile updates 🔄");
         if (err.response?.status === 401) {
           logout();
           navigate('/login');
@@ -48,26 +54,26 @@ function Profile() {
       }
     };
     fetchData();
-  }, [navigate, logout]);
+  }, [navigate, logout, API_BASE]);
 
   const handleLogout = () => {
     logout();
+    toast.info("Logged out successfully. See you soon! 👋");
     navigate('/');
   };
 
   const handleAddToCart = (product) => {
-    // Выводим адекватное уведомление пользователю
-    alert(`Кроссовки ${product.title} (Размер: ${product.size}) добавлены в корзину!`);
-    console.log("Добавлено в корзину из профиля:", product);
+    toast.success(`${product.title} (Size: ${product.size}) added to cart! 👟`);
+    console.log("Added to cart from profile:", product);
   };
 
-  // Динамическое приветствие
+  // Динамическое приветствие на английском
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'ДОБРОЕ УТРО';
-    if (hour >= 12 && hour < 18) return 'ДОБРЫЙ ДЕНЬ';
-    if (hour >= 18 && hour < 23) return 'ДОБРЫЙ ВЕЧЕР';
-    return 'ДОБРОЙ НОЧИ';
+    if (hour >= 5 && hour < 12) return 'GOOD MORNING';
+    if (hour >= 12 && hour < 18) return 'GOOD AFTERNOON';
+    if (hour >= 18 && hour < 23) return 'GOOD EVENING';
+    return 'GOOD NIGHT';
   };
 
   // Подсчет потраченных денег (только успешные заказы)
@@ -75,18 +81,30 @@ function Profile() {
     .filter(o => o.status === 'Completed' || o.status === 'Delivered')
     .reduce((sum, order) => sum + order.totalPrice, 0);
 
-  if (loading) return <div style={styles.loader}>Загрузка твоих кроссовок...</div>;
+  // Улучшенная динамическая стилизация статусов
+  const getStatusStyle = (status) => {
+    const currentStatus = status?.toLowerCase() || 'pending';
+    if (currentStatus === 'completed' || currentStatus === 'delivered') {
+      return { color: '#00c853', background: '#e8f5e9' };
+    }
+    if (currentStatus === 'cancelled' || currentStatus === 'failed') {
+      return { color: '#ff4d4d', background: '#ffebee' };
+    }
+    return { color: '#ff9100', background: '#fff3e0' }; // Обработка / В пути
+  };
+
+  if (loading) return <div style={styles.loader}>Loading your sneakers... 🚀</div>;
 
   return (
     <div style={styles.container}>
       {/* HEADER */}
       <div style={styles.header}>
         <div>
-          <h1 style={styles.welcome}>{getGreeting()}, {user?.name?.toUpperCase() || 'СНИКЕРХЕД'}!</h1>
+          <h1 style={styles.welcome}>{getGreeting()}, {user?.name?.toUpperCase() || 'SNEAKERHEAD'}!</h1>
           <p style={styles.email}>{user?.email}</p>
         </div>
         <button onClick={handleLogout} style={styles.logoutBtn}>
-          <HiOutlineLogout size={20} /> ВЫЙТИ
+          <HiOutlineLogout size={20} /> LOG OUT
         </button>
       </div>
 
@@ -94,27 +112,26 @@ function Profile() {
       <div style={styles.statsRow}>
         <div style={styles.statCard}>
           <HiOutlineShoppingBag size={24} color="#000" />
-          <span>Заказов: <strong>{orders.length}</strong></span>
+          <span>Orders: <strong>{orders.length}</strong></span>
         </div>
         <div style={styles.statCard}>
           <HiOutlineHeart size={24} color="#ff4757" />
-          <span>В избранном: <strong>{wishlist.length}</strong></span>
+          <span>Wishlist: <strong>{wishlist.length}</strong></span>
         </div>
-        {/* Новая карточка со статистикой трат */}
         <div style={styles.statCard}>
           <HiOutlineCurrencyDollar size={24} color="#00c853" />
-          <span>Потрачено: <strong>${totalSpent.toFixed(2)}</strong></span>
+          <span>Total Spent: <strong>${totalSpent.toFixed(2)}</strong></span>
         </div>
         <div style={styles.statCard}>
           <HiOutlineClock size={24} color="#ffa502" />
-          <span>Статус: <strong>VIP</strong></span>
+          <span>Status: <strong>VIP Member</strong></span>
         </div>
       </div>
 
       {/* WISHLIST SECTION */}
-      <h2 style={styles.sectionTitle}>МОЁ ИЗБРАННОЕ</h2>
+      <h2 style={styles.sectionTitle}>MY WISHLIST</h2>
       {wishlist.length === 0 ? (
-        <p style={styles.emptyText}>Твой список желаний пуст.</p>
+        <p style={styles.emptyText}>Your wishlist is currently empty.</p>
       ) : (
         <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}> 
           {wishlist.map((item) => (
@@ -129,18 +146,18 @@ function Profile() {
       )}
 
       {/* ORDERS SECTION */}
-      <h2 style={{ ...styles.sectionTitle, marginTop: '50px' }}>ИСТОРИЯ ЗАКАЗОВ</h2>
+      <h2 style={{ ...styles.sectionTitle, marginTop: '50px' }}>ORDER HISTORY</h2>
       {orders.length === 0 ? (
         <div style={styles.emptyState}>
-          <p>Пока здесь пусто. Твоя первая пара ждет тебя в магазине!</p>
-          <button onClick={() => navigate('/')} style={styles.shopBtn}>ПЕРЕЙТИ К ПОКУПКАМ</button>
+          <p>Your history is empty. Your first exclusive pair is waiting for you in the shop!</p>
+          <button onClick={() => navigate('/')} style={styles.shopBtn}>GO SHOPPING</button>
         </div>
       ) : (
         <div style={styles.ordersList}>
           {orders.map((order) => (
             <div key={order._id} style={styles.orderCard}>
               <div style={styles.orderLeft}>
-                <div style={styles.orderId}>ЗАКАЗ #{order._id.slice(-6).toUpperCase()}</div>
+                <div style={styles.orderId}>ORDER #{order._id.slice(-6).toUpperCase()}</div>
                 <div style={styles.orderDate}>{new Date(order.createdAt).toLocaleString()}</div>
                 <div style={styles.itemsList}>
                   {order.items.map((item, idx) => (
@@ -154,10 +171,9 @@ function Profile() {
                 <div style={styles.totalPrice}>${order.totalPrice.toFixed(2)}</div>
                 <div style={{
                   ...styles.status,
-                  color: order.status === 'Completed' ? '#00c853' : '#ff9100',
-                  background: order.status === 'Completed' ? '#e8f5e9' : '#fff3e0'
+                  ...getStatusStyle(order.status)
                 }}>
-                  {order.status || 'ОБРАБОТКА'}
+                  {(order.status || 'PROCESSING').toUpperCase()}
                 </div>
               </div>
             </div>
@@ -165,7 +181,7 @@ function Profile() {
         </div>
       )}
 
-      {/* МОДАЛЬНОЕ ОКНО ТОВАРА */}
+      {/* PRODUCT DETAILS MODAL */}
       {selectedProduct && (
         <ProductModal 
           product={selectedProduct} 
@@ -179,7 +195,7 @@ function Profile() {
 
 const styles = {
   container: { padding: '60px 20px', maxWidth: '1000px', margin: '0 auto', fontFamily: "'Montserrat', sans-serif" },
-  loader: { padding: '100px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold' },
+  loader: { padding: '100px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', fontFamily: "'Montserrat', sans-serif" },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' },
   welcome: { fontWeight: '900', fontSize: '32px', letterSpacing: '-1px', margin: 0 },
   email: { color: '#888', margin: '5px 0 0 0' },

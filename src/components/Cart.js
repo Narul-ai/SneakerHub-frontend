@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { HiPlus, HiMinus, HiOutlineTrash } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
-import confetti from 'canvas-confetti'; // Импорт конфетти
+import confetti from 'canvas-confetti';
 
 function Cart() {
   const navigate = useNavigate();
@@ -13,12 +13,15 @@ function Cart() {
   const { user } = useAuth();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
+  // Гибкая настройка URL бэкенда
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
+
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
     const token = localStorage.getItem('token');
     if (!token || !user) {
-      toast.warn("Сначала войдите в аккаунт! 😊");
+      toast.warn("Please log in to your account first! 😊");
       navigate('/login');
       return;
     }
@@ -30,24 +33,24 @@ function Cart() {
         title: item.title,
         quantity: item.quantity || 1,
         price: item.price,
-        size: item.size || "Уточнить",
+        size: item.size || "TBD",
         image: item.image || ""
       }));
 
-      await axios.post('https://sneakerhub-vsiq.onrender.com/api/orders', {
+      await axios.post(`${API_BASE}/api/orders`, {
         items: orderItems,
         totalPrice: totalPrice,
         shippingInfo: {
           customerName: user.name,
-          phoneNumber: user.phoneNumber || "Не указан",
-          address: "Указано в профиле",
-          city: "Алматы"
+          phoneNumber: user.phoneNumber || "Not specified",
+          address: "Specified in profile",
+          city: "Almaty"
         }
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // --- ЗАПУСК КОНФЕТТИ ---
+      // --- CONFETTI EFFECT ---
       confetti({
         particleCount: 150,
         spread: 70,
@@ -61,14 +64,14 @@ function Cart() {
       }, 500);
       // -----------------------
 
-      toast.success(`Заказ оформлен! 🚀`, { theme: "dark" });
+      toast.success(`Order placed successfully! 🚀`, { theme: "dark" });
       clearCart();
       
       setTimeout(() => navigate('/profile'), 1500);
 
     } catch (error) {
-      console.error("Ошибка заказа:", error.response?.data || error.message);
-      const errorMsg = error.response?.data?.message || "Ошибка при оформлении";
+      console.error("Order error:", error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || "An error occurred during checkout";
       toast.error(errorMsg);
     } finally {
       setIsCheckingOut(false);
@@ -88,16 +91,16 @@ function Cart() {
       border: '1px solid #f0f0f0'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '18px', letterSpacing: '-0.5px' }}>ВАША КОРЗИНА</h3>
+        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '18px', letterSpacing: '-0.5px' }}>YOUR CART</h3>
         <span style={{ fontSize: '12px', background: '#eee', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>
-          {cart.length} ПРЕДМ.
+          {cart.length} {cart.length === 1 ? 'ITEM' : 'ITEMS'}
         </span>
       </div>
       
       {cart.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <div style={{ fontSize: '40px', marginBottom: '10px' }}>📦</div>
-          <p style={{ color: '#aaa', fontSize: '14px' }}>Пока тут пусто, выберите что-нибудь крутое!</p>
+          <p style={{ color: '#aaa', fontSize: '14px' }}>Your cart is empty. Choose something cool!</p>
         </div>
       ) : (
         <>
@@ -115,7 +118,7 @@ function Cart() {
                 </div>
                 
                 <div style={{ fontSize: '12px', color: '#999', marginBottom: '12px' }}>
-                  Размер: <span style={{ color: '#000', fontWeight: 'bold' }}>{item.size || '—'}</span>
+                  Size: <span style={{ color: '#000', fontWeight: 'bold' }}>{item.size || '—'}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -160,7 +163,8 @@ function Cart() {
                       padding: '8px',
                       borderRadius: '8px',
                       display: 'flex',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      transition: 'background 0.2s'
                     }}
                   >
                     <HiOutlineTrash size={18} />
@@ -172,7 +176,7 @@ function Cart() {
 
           <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '2px solid #f0f0f0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <span style={{ fontWeight: '600', color: '#888' }}>ИТОГО К ОПЛАТЕ:</span>
+              <span style={{ fontWeight: '600', color: '#888' }}>TOTAL TO PAY:</span>
               <strong style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-1px' }}>
                 ${totalPrice.toFixed(2)}
               </strong>
@@ -195,7 +199,7 @@ function Cart() {
                 transition: 'all 0.2s'
               }}
             >
-              {isCheckingOut ? 'ОБРАБОТКА...' : 'ОФОРМИТЬ ЗАКАЗ'}
+              {isCheckingOut ? 'PROCESSING...' : 'PLACE ORDER'}
             </button>
           </div>
         </>

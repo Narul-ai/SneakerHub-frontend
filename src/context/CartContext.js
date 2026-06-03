@@ -21,21 +21,18 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     if (!product.size) {
-      toast.error("Пожалуйста, выберите размер!");
+      toast.error("Please select a size!");
       return;
     }
 
     setCart(prev => {
       const existingItemIndex = prev.findIndex(
-  item => {
-    // Проверяем по _id или по id, если подчеркивание потерялось
-    const sameId = (item._id && item._id === product._id) || (item.id && item.id === product.id);
-    // Проверяем размер
-    const sameSize = item.size === product.size;
-    
-    return sameId && sameSize;
-  }
-);
+        item => {
+          const sameId = (item._id && item._id === product._id) || (item.id && item.id === product.id);
+          const sameSize = item.size === product.size;
+          return sameId && sameSize;
+        }
+      );
 
       if (existingItemIndex > -1) {
         const newCart = [...prev];
@@ -44,22 +41,21 @@ export const CartProvider = ({ children }) => {
           quantity: (newCart[existingItemIndex].quantity || 1) + 1
         };
         
-        // ИСПРАВЛЕНО: используем обычный toast с иконкой вместо несуществующего .info
-        toast("Количество обновлено!", {
+        toast("Quantity updated!", {
           icon: '🔄',
         });
         
         return newCart;
       }
 
-      toast.success(`${product.title} добавлен! 👟`);
+      toast.success(`${product.title} added! 👟`);
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
   const removeFromCart = (productId, size) => {
     setCart(prev => prev.filter(item => !(item._id === productId && item.size === size)));
-    toast.success('Удалено из корзины');
+    toast.success('Removed from cart');
   };
 
   const updateQuantity = (productId, size, amount) => {

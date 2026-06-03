@@ -11,6 +11,9 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Динамический URL бэкенда из переменных окружения
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
+
   // Исправленный эффект: обновляем localStorage только если user реально существует
   useEffect(() => {
     if (user) {
@@ -30,11 +33,11 @@ export const AuthProvider = ({ children }) => {
           // Устанавливаем заголовок для всех будущих запросов axios
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          // Проверяем токен на бэкенде
-          const { data } = await axios.get('https://sneakerhub-vsiq.onrender.com/api/auth/profile');
+          // Проверяем токен на бэкенде через API_BASE
+          const { data } = await axios.get(`${API_BASE}/api/auth/profile`);
           setUser(data); 
         } catch (error) {
-          console.error("Сессия истекла или сервер недоступен");
+          console.error("Session expired or server is unreachable");
           // Если токен "протух" — разлогиниваем
           if (error.response && error.response.status === 401) {
              logout();
@@ -59,8 +62,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    // Вместо жесткого редиректа лучше просто обнулить юзера, 
-    // а редирект сделает ProtectedRoute в App.js
   };
 
   return (
@@ -74,10 +75,10 @@ export const AuthProvider = ({ children }) => {
       isAdmin: user?.role === 'admin' 
     }}>
       {/* 
-         Важно: если loading = true, мы ничего не рендерим, 
-         чтобы App.js не успел сработать и выкинуть нас на логин
+          Важно: если loading = true, мы ничего не рендерим, 
+          чтобы App.js не успел сработать и выкинуть нас на логин
       */}
-      {!loading ? children : <div className="loading-screen">Загрузка...</div>}
+      {!loading ? children : <div className="loading-screen">Loading...</div>}
     </AuthContext.Provider>
   );
 };
