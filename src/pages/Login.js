@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'react-shadow'; // Note: standard axios import used below
+import axios from 'axios';
 import axiosInstance from 'axios'; 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
