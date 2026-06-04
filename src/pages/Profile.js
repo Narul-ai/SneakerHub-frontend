@@ -53,7 +53,9 @@ function Profile() {
         loading(false);
       }
     };
-    fetchData();
+   fetchData();
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, logout, API_BASE]);
 
   const handleLogout = () => {
