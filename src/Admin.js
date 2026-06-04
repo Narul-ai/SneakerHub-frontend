@@ -19,8 +19,8 @@ const Admin = () => {
   });
   const [issubmitting, setIsSubmitting] = useState(false);
 
-  // Динамический URL бэкенда из переменных окружения
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://sneakerhub-vsiq.onrender.com';
+  // Исправлено на правильный префикс для Create React App
+  const API_BASE = process.env.REACT_APP_API_URL || 'https://sneakerhub-vsiq.onrender.com';
 
   // --- ФУНКЦИЯ ЗАГРУЗКИ ФАЙЛОВ ---
   const handleFileUpload = async (e) => {
@@ -54,7 +54,7 @@ const Admin = () => {
     }
   };
 
-  // Расчет метрик (совместим как с русскими, так и с английскими статусами на бэкенде)
+  // Расчет метрик
   const stats = useMemo(() => {
     const finishedOrders = orders.filter(o => o.status === 'Завершен' || o.status === 'Completed' || o.status === 'Delivered');
     const revenue = finishedOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
@@ -71,13 +71,107 @@ const Admin = () => {
   useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.innerText = `
-      .admin-card { transition: all 0.3s ease; border: 1px solid #222; }
-      .admin-card:hover { transform: translateY(-4px); border-color: #00c853 !important; box-shadow: 0 10px 20px rgba(0,200,83,0.1); }
-      input, select, textarea { transition: 0.2s; outline: none !important; }
-      input:focus, select:focus, textarea:focus { border-color: #00c853 !important; background: #1a1a1a !important; }
-      .status-select { background: #222; color: #fff; border: 1px solid #333; padding: 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-      .upload-label { display: block; padding: 15px; background: #00c85315; border: 1px dashed #00c853; color: #00c853; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: 0.3s; }
-      .upload-label:hover { background: #00c85325; }
+      /* Плавное проявление элементов при загрузке */
+      .animate-fade-up {
+        opacity: 0;
+        animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      
+      .admin-card { 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        border: 1px solid #222; 
+      }
+      .admin-card:hover { 
+        transform: translateY(-5px); 
+        border-color: #00c853 !important; 
+        box-shadow: 0 12px 24px rgba(0,200,83,0.12); 
+      }
+      
+      input, select, textarea { transition: all 0.2s ease; outline: none !important; }
+      input:focus, select:focus, textarea:focus { 
+        border-color: #00c853 !important; 
+        background: #1a1a1a !important; 
+        box-shadow: 0 0 10px rgba(0,200,83,0.15);
+      }
+      
+      /* Интерактивные статусы для селектов */
+      .status-select { 
+        background: #161616; 
+        color: #fff; 
+        border: 1px solid #333; 
+        padding: 8px 14px; 
+        border-radius: 6px; 
+        font-size: 13px; 
+        cursor: pointer; 
+        font-weight: 600;
+        transition: 0.2s ease;
+      }
+      .status-new { border-color: #2979ff !important; color: #2979ff; background: rgba(41, 121, 255, 0.05); }
+      .status-transit { border-color: #ff9100 !important; color: #ff9100; background: rgba(255, 145, 0, 0.05); }
+      .status-completed { border-color: #00c853 !important; color: #00c853; background: rgba(0, 200, 83, 0.05); }
+      
+      .upload-label { 
+        display: block; 
+        padding: 18px; 
+        background: rgba(0,200,83,0.03); 
+        border: 2px dashed #00c853; 
+        color: #00c853; 
+        border-radius: 10px; 
+        text-align: center; 
+        cursor: pointer; 
+        font-weight: bold; 
+        margin-bottom: 10px; 
+        transition: 0.3s; 
+      }
+      .upload-label:hover { background: rgba(0,200,83,0.08); transform: scale(1.005); }
+      
+      /* --- ПУЛЬСИРУЮЩЕЕ СВЕЧЕНИЕ ДЛЯ КАРТЫ ВЫРУЧКИ --- */
+      .revenue-card {
+        border-color: rgba(0,200,83,0.3) !important;
+        animation: pulseGlow 2.5s infinite ease-in-out;
+      }
+
+      /* --- КАСТОМНЫЙ СКРОЛЛБАР ДЛЯ ЗАКАЗОВ (БЕЗБАРЬЕРНЫЙ СПИСОК) --- */
+      .orders-scroll-container {
+        max-height: 380px;
+        overflow-y: auto;
+        border-radius: 15px;
+        border: 1px solid #222;
+        background: #111;
+      }
+      .orders-scroll-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .orders-scroll-container::-webkit-scrollbar-track {
+        background: #111;
+        border-radius: 0 15px 15px 0;
+      }
+      .orders-scroll-container::-webkit-scrollbar-thumb {
+        background: #252525;
+        border-radius: 10px;
+        transition: background 0.3s;
+      }
+      .orders-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #00c853;
+      }
+      
+      .order-row { transition: background 0.2s ease; }
+      .order-row:hover { background: #161616 !important; }
+      
+      /* Эффект зума для картинок товаров */
+      .catalog-grid .admin-card:hover .img-wrapper img {
+        transform: scale(1.06);
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes pulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.15); }
+        70% { box-shadow: 0 0 0 12px rgba(0, 200, 83, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
+      }
     `;
     document.head.appendChild(styleSheet);
     return () => document.head.removeChild(styleSheet);
@@ -139,7 +233,14 @@ const Admin = () => {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setNewProduct({ title: '', price: '', oldPrice: '', images: '', description: '', category: 'sneakers' });
+    NewProduct({ title: '', price: '', oldPrice: '', images: '', description: '', category: 'sneakers' });
+  };
+
+  // Функция хелпер для назначения динамических классов селекту статуса
+  const getStatusClass = (status) => {
+    if (status === 'Завершен' || status === 'Completed') return 'status-completed';
+    if (status === 'В пути' || status === 'In Transit') return 'status-transit';
+    return 'status-new';
   };
 
   const styles = {
@@ -148,10 +249,10 @@ const Admin = () => {
     input: { padding: '12px', background: '#1a1a1a', border: '1px solid #333', color: '#fff', borderRadius: '8px', width: '100%', boxSizing: 'border-box' }
   };
 
-  if (loading) return <div style={styles.container}>LOADING DASHBOARD SYSTEM...</div>;
+  if (loading) return <div style={{ ...styles.container, display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '18px', fontWeight: 'bold', letterSpacing: '2px', color: '#00c853' }}>LOADING DASHBOARD SYSTEM...</div>;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="animate-fade-up">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ margin: 0, fontWeight: 900, letterSpacing: '-1px' }}>DASHBOARD</h1>
         <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} style={{ background: '#ff1744', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' }}>LOG OUT</button>
@@ -160,16 +261,16 @@ const Admin = () => {
       {error && <div style={{ color: '#ff1744', marginBottom: '20px', fontWeight: 'bold' }}>⚠️ {error}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '30px' }}>
-        <div style={styles.card}><small style={{ color: '#888', fontWeight: 'bold' }}>TOTAL REVENUE</small><div style={{ fontSize: '24px', color: '#00c853', fontWeight: 900 }}>${stats.revenue}</div></div>
-        <div style={styles.card}><small style={{ color: '#888', fontWeight: 'bold' }}>ORDERS PLACED</small><div style={{ fontSize: '24px', fontWeight: 900 }}>{stats.ordersCount}</div></div>
-        <div style={styles.card}><small style={{ color: '#888', fontWeight: 'bold' }}>TOTAL PRODUCTS</small><div style={{ fontSize: '24px', fontWeight: 900 }}>{stats.productsCount}</div></div>
+        <div style={styles.card} className="admin-card revenue-card"><small style={{ color: '#888', fontWeight: 'bold' }}>TOTAL REVENUE</small><div style={{ fontSize: '24px', color: '#00c853', fontWeight: 900 }}>${stats.revenue}</div></div>
+        <div style={styles.card} className="admin-card"><small style={{ color: '#888', fontWeight: 'bold' }}>ORDERS PLACED</small><div style={{ fontSize: '24px', fontWeight: 900 }}>{stats.ordersCount}</div></div>
+        <div style={styles.card} className="admin-card"><small style={{ color: '#888', fontWeight: 'bold' }}>TOTAL PRODUCTS</small><div style={{ fontSize: '24px', fontWeight: 900 }}>{stats.productsCount}</div></div>
       </div>
 
-      <div style={{ ...styles.card, display: 'flex', gap: '15px' }}>
+      <div style={{ ...styles.card, display: 'flex', gap: '15px' }} className="admin-card">
         <input style={styles.input} placeholder="Search records by keywords..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
-      <form onSubmit={handleAddOrUpdateProduct} style={{ ...styles.card, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <form onSubmit={handleAddOrUpdateProduct} style={{ ...styles.card, display: 'flex', flexDirection: 'column', gap: '12px' }} className="admin-card">
         <h3 style={{ margin: '0 0 10px 0' }}>{editingId ? '📝 Edit Product Information' : '➕ Add New Store Item'}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '10px' }}>
           <input style={styles.input} placeholder="Product Title" value={newProduct.title} onChange={e => setNewProduct({...newProduct, title: e.target.value})} required />
@@ -210,7 +311,7 @@ const Admin = () => {
       </form>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '15px' }}>
-        <h2 style={{ margin: 0 }}>🛒 Incoming Orders</h2>
+        <h2 style={{ margin: 0 }}>🛒 Incoming Orders ({filteredOrders.length})</h2>
         <select className="status-select" value={orderFilter} onChange={(e) => setOrderFilter(e.target.value)}>
           <option value="Все">All Statuses</option>
           <option value="Новый">New</option>
@@ -219,9 +320,10 @@ const Admin = () => {
         </select>
       </div>
 
-      <div style={{ ...styles.card, padding: 0, overflowX: 'auto' }}>
+      {/* --- КАСТОМНЫЙ СКРОЛЛ-КОНТЕЙНЕР ДЛЯ ЗАКАЗОВ --- */}
+      <div className="orders-scroll-container">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-          <thead style={{ background: '#1a1a1a', fontSize: '12px', color: '#888' }}>
+          <thead style={{ background: '#161616', fontSize: '12px', color: '#888', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #222' }}>
             <tr>
               <th style={{ padding: '15px', textAlign: 'left' }}>CUSTOMER</th>
               <th style={{ padding: '15px', textAlign: 'left' }}>FULFILLMENT STATUS</th>
@@ -230,10 +332,14 @@ const Admin = () => {
           </thead>
           <tbody>
             {filteredOrders.map(order => (
-              <tr key={order._id} style={{ borderBottom: '1px solid #222' }}>
+              <tr key={order._id} style={{ borderBottom: '1px solid #222' }} className="order-row">
                 <td style={{ padding: '15px', fontWeight: '500' }}>{order.shippingInfo?.customerName || 'Guest'}</td>
                 <td style={{ padding: '15px' }}>
-                  <select className="status-select" value={order.status} onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}>
+                  <select 
+                    className={`status-select ${getStatusClass(order.status)}`} 
+                    value={order.status} 
+                    onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+                  >
                     <option value="Новый">New</option>
                     <option value="В пути">In Transit</option>
                     <option value="Завершен">Completed</option>
@@ -242,15 +348,22 @@ const Admin = () => {
                 <td style={{ padding: '15px', textAlign: 'right', color: '#00c853', fontWeight: 900 }}>${order.totalPrice}</td>
               </tr>
             ))}
+            {filteredOrders.length === 0 && (
+              <tr>
+                <td colSpan="3" style={{ padding: '30px', textAlign: 'center', color: '#666' }}>No matching orders found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       <h2 style={{ marginTop: '50px', marginBottom: '20px' }}>📦 Available Catalog Items ({filteredProducts.length})</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }} className="catalog-grid">
         {filteredProducts.map(p => (
           <div key={p._id} style={styles.card} className="admin-card">
-            <img src={p.images?.[0] || 'https://via.placeholder.com/150'} alt="" style={{ width: '100%', height: '170px', objectFit: 'cover', borderRadius: '10px' }} />
+            <div className="img-wrapper" style={{ width: '100%', height: '170px', overflow: 'hidden', borderRadius: '10px' }}>
+              <img src={p.images?.[0] || 'https://via.placeholder.com/150'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
             <div style={{ fontWeight: 'bold', margin: '12px 0 6px 0', fontSize: '16px' }}>{p.title}</div>
             <div style={{ color: '#00c853', fontWeight: 900, fontSize: '18px', marginBottom: '12px' }}>${p.price}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
