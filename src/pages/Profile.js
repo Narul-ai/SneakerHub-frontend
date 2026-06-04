@@ -50,7 +50,8 @@ function Profile() {
           navigate('/login');
         }
       } finally {
-        loading(false);
+        // Меняем loading(false) на ФУНКЦИЮ-сеттер:
+        setLoading(false); 
       }
     };
    fetchData();
