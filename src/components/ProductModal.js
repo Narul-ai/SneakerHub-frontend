@@ -138,7 +138,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
         return;
       }
 
-      const data = await response.json();
+      await response.json();
 
       alert("Отзыв удален");
       setLocalReviews(localReviews.filter(rev => rev._id !== reviewId));

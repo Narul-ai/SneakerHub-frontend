@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     };
     
     checkLoggedIn();
-  }, []);
+  }, [API_BASE]);
 
   const login = (userData, token) => {
     localStorage.setItem('token', token);
