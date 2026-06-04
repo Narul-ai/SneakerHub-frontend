@@ -232,9 +232,10 @@ const Admin = () => {
   };
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-    NewProduct({ title: '', price: '', oldPrice: '', images: '', description: '', category: 'sneakers' });
-  };
+  setEditingId(null);
+  // Вызываем функцию-сеттер стейта с маленькой буквы
+  setNewProduct({ title: '', price: '', oldPrice: '', images: '', description: '', category: 'sneakers' });
+};
 
   // Функция хелпер для назначения динамических классов селекту статуса
   const getStatusClass = (status) => {
