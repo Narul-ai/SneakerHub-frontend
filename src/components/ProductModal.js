@@ -17,7 +17,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
   const user = auth?.user || null; 
 
   // Базовый URL бэкенда из переменных окружения
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.REACT_APP_API_URL || '';
 
   const [currentImg, setCurrentImg] = useState(0);
   const availableSizes = product?.sizes || [39, 40, 41, 42, 43, 44];
@@ -48,25 +48,25 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
   const copyProductLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/product/${product._id}`);
-    alert("Ссылка на кроссовки скопирована в буфер обмена!");
+    alert("Product link copied to clipboard!");
   };
 
   const submitReviewHandler = async () => {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      alert("Вы не авторизованы!");
+      alert("You are not authorized!");
       return;
     }
 
     if (!comment.trim()) {
-      alert("Напишите текст отзыва");
+      alert("Please write a review comment");
       return;
     }
 
+    // eslint-disable-next-line no-unused-vars
     setIsSubmitting(true);
     try {
-      // ИСПРАВЛЕНО: Добавлен полный путь к бэкенду Render через API_BASE
       const response = await fetch(`${API_BASE}/api/products/${product._id}/reviews`, {
         method: 'POST',
         headers: {
@@ -76,32 +76,29 @@ function ProductModal({ product, onClose, onAddToCart }) {
         body: JSON.stringify({
           rating: newRating,
           comment: comment
-        })
+        } )
       });
 
-      // 1. Сначала проверяем статус ответа сервера
       if (!response.ok) {
-        let errorMessage = `Ошибка сервера: ${response.status}`;
+        let errorMessage = `Server error: ${response.status}`;
         try {
-          // Пытаемся прочитать JSON с ошибкой, если бэкенд его прислал
           const errorData = await response.json();
           errorMessage = errorData.message || errorMessage;
         } catch (_) {
-          // Если там не JSON (например, пустой ответ или HTML при 405), игнорируем ошибку парсинга
+          // Игнорируем ошибку парсинга
         }
         alert(errorMessage);
-        return; // Останавливаем выполнение функции
+        return;
       }
 
-      // 2. Если дошли сюда, значит response.ok === true. Безопасно парсим JSON
       const data = await response.json();
 
-      alert("Отзыв успешно добавлен!");
+      alert("Review added successfully!");
       
       const newReviewObj = data.review || {
         _id: Date.now().toString(),
         user: user?._id,
-        name: user?.name || 'Пользователь',
+        name: user?.name || 'User',
         rating: newRating,
         comment: comment,
         createdAt: new Date().toISOString()
@@ -113,18 +110,17 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
     } catch (error) {
       console.error("Ошибка отправки отзыва:", error);
-      alert("Не удалось отправить отзыв. Проверьте соединение.");
+      alert("Failed to submit review. Please check your connection.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const deleteReviewHandler = async (reviewId) => {
-    if (!window.confirm("Вы уверены, что хотите удалить этот отзыв?")) return;
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
 
     const token = localStorage.getItem('token');
     try {
-      // ИСПРАВЛЕНО: Добавлен полный путь к бэкенду Render через API_BASE
       const response = await fetch(`${API_BASE}/api/products/${product._id}/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
@@ -132,19 +128,18 @@ function ProductModal({ product, onClose, onAddToCart }) {
         }
       });
 
-      // Сначала проверяем успешность ответа, чтобы не падать на json()
       if (!response.ok) {
-        alert(`Ошибка при удалении: статус ${response.status}`);
+        alert(`Error deleting: status ${response.status}`);
         return;
       }
 
       await response.json();
 
-      alert("Отзыв удален");
+      alert("Review deleted");
       setLocalReviews(localReviews.filter(rev => rev._id !== reviewId));
     } catch (error) {
       console.error("Ошибка удаления:", error);
-      alert("Не удалось удалить отзыв");
+      alert("Failed to delete review");
     }
   };
 
@@ -175,14 +170,13 @@ function ProductModal({ product, onClose, onAddToCart }) {
           <HiOutlineX size={28} />
         </button>
 
-        {/* ФИКС: Кнопка "Поделиться" теперь вынесена отдельно, чтобы не мешать "X" */}
         <button 
           className="share-modal-btn"
           onClick={copyProductLink}
-          title="Поделиться товаром"
+          title="Share product"
           style={{
             position: 'absolute',
-            top: '60px', // Опускаем ниже кнопки X
+            top: '60px',
             right: '20px',
             background: 'white',
             border: '1px solid #eee',
@@ -208,7 +202,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                 <>
                   <button className="modal-nav left" onClick={prevImg}><HiChevronLeft /></button>
                   <button className="modal-nav right" onClick={nextImg}><HiChevronRight /></button>
-                </                >
+                </>
               )}
             </div>
             
@@ -237,8 +231,8 @@ function ProductModal({ product, onClose, onAddToCart }) {
 
             <div className="modal-section">
               <div className="section-header">
-                <h4>ВЫБЕРИТЕ РАЗМЕР (EU)</h4>
-                <span className="size-guide">Таблица размеров</span>
+                <h4>SELECT SIZE (EU)</h4>
+                <span className="size-guide">Size Guide</span>
               </div>
               <div className="modal-size-grid">
                 {availableSizes.map(size => (
@@ -254,8 +248,8 @@ function ProductModal({ product, onClose, onAddToCart }) {
             </div>
 
             <div className="modal-desc-box">
-              <h4>О ТОВАРЕ</h4>
-              <p>{product.description || "Лимитированная серия кроссовок с улучшенной амортизацией."}</p>
+              <h4>ABOUT THE PRODUCT</h4>
+              <p>{product.description || "Limited edition sneakers with enhanced cushioning."}</p>
             </div>
 
             <button 
@@ -267,17 +261,17 @@ function ProductModal({ product, onClose, onAddToCart }) {
                   onClose();
                 } else {
                   console.error("Ошибка: функция onAddToCart не передана в модалку!");
-                  alert("Проблема с добавлением в корзину. Проверьте консоль.");
+                  alert("Problem adding item to cart. Please check console.");
                 }
               }}
             >
               <HiOutlineShoppingBag size={20} style={{ marginRight: '10px' }} />
-              {product.countInStock > 0 ? 'ДОБАВИТЬ В КОРЗИНУ' : 'НЕТ В НАЛИЧИИ'}
+              {product.countInStock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
             </button>
 
             <div className="review-section">
               <h3 className="review-title">
-                <HiOutlineChatAlt size={20} /> ОТЗЫВЫ ({localReviews.length})
+                <HiOutlineChatAlt size={20} /> REVIEWS ({localReviews.length})
               </h3>
 
               <div className="add-review-minimal">
@@ -294,7 +288,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                 <div className="input-group">
                   <input 
                     type="text" 
-                    placeholder={isSubmitting ? "Отправка..." : "Напишите отзыв..."}
+                    placeholder={isSubmitting ? "Submitting..." : "Write a review..."}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     disabled={isSubmitting}
@@ -304,7 +298,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                     onClick={submitReviewHandler}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "..." : "ОТПРАВИТЬ"}
+                    {isSubmitting ? "..." : "SUBMIT"}
                   </button>
                 </div>
               </div>
@@ -340,7 +334,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                                 color="#ff4d4d" 
                                 style={{ cursor: 'pointer' }} 
                                 onClick={() => deleteReviewHandler(rev._id)}
-                                title="Удалить отзыв"
+                                title="Delete review"
                               />
                             )}
                           </div>
@@ -355,7 +349,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
                     </div>
                   ))
                 ) : (
-                  <div className="empty-reviews" style={{ color: '#888', fontSize: '13px' }}>Здесь пока пусто. Станьте первым!</div>
+                  <div className="empty-reviews" style={{ color: '#888', fontSize: '13px' }}>It's empty here. Be the first to leave a review!</div>
                 )}
               </div>
             </div>
