@@ -239,10 +239,19 @@ const Admin = () => {
 
   // Функция хелпер для назначения динамических классов селекту статуса
   const getStatusClass = (status) => {
-    if (status === 'Завершен' || status === 'Completed') return 'status-completed';
-    if (status === 'В пути' || status === 'In Transit') return 'status-transit';
-    return 'status-new';
-  };
+  if (!status) return 'status-new';
+  
+  const currentStatus = status.toLowerCase();
+
+  if (currentStatus === 'completed' || currentStatus === 'завершен') {
+    return 'status-completed'; // Зелёный
+  }
+  if (currentStatus === 'shipped' || currentStatus === 'в пути' || currentStatus === 'in transit') {
+    return 'status-transit'; // Оранжевый
+  }
+  
+  return 'status-new'; // Синий для 'pending' / 'new'
+};
 
   const styles = {
     container: { padding: '30px 5%', color: '#e0e0e0', background: '#0a0a0a', minHeight: '100vh', fontFamily: 'Inter, sans-serif' },
@@ -343,7 +352,7 @@ const Admin = () => {
             >
               {/* 🔥 ТЕПЕРЬ ВСЕ VALUE СТРОГО НА АНГЛИЙСКОМ */}
               <option value="Pending">Pending</option> 
-              <option value="Shipped">In Transit</option> 
+              <option value="Shipped">Shipped</option> 
               <option value="Completed">Completed</option>
             </select>
           </td>
