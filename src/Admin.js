@@ -342,7 +342,7 @@ const Admin = () => {
               onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
             >
               {/* 🔥 ТЕПЕРЬ ВСЕ VALUE СТРОГО НА АНГЛИЙСКОМ */}
-              <option value="Pending">New</option> 
+              <option value="Pending">Pending</option> 
               <option value="Shipped">In Transit</option> 
               <option value="Completed">Completed</option>
             </select>
