@@ -322,41 +322,42 @@ const Admin = () => {
       </div>
 
       {/* --- КАСТОМНЫЙ СКРОЛЛ-КОНТЕЙНЕР ДЛЯ ЗАКАЗОВ --- */}
-      <div className="orders-scroll-container">
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-          <thead style={{ background: '#161616', fontSize: '12px', color: '#888', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #222' }}>
-            <tr>
-              <th style={{ padding: '15px', textAlign: 'left' }}>CUSTOMER</th>
-              <th style={{ padding: '15px', textAlign: 'left' }}>FULFILLMENT STATUS</th>
-              <th style={{ padding: '15px', textAlign: 'right' }}>TOTAL PAID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.map(order => (
-              <tr key={order._id} style={{ borderBottom: '1px solid #222' }} className="order-row">
-                <td style={{ padding: '15px', fontWeight: '500' }}>{order.shippingInfo?.customerName || 'Guest'}</td>
-                <td style={{ padding: '15px' }}>
-                  <select 
-                    className={`status-select ${getStatusClass(order.status)}`} 
-                    value={order.status} 
-                    onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
-                  >
-                    <option value="Новый">New</option>
-                    <option value="В пути">In Transit</option>
-                    <option value="Завершен">Completed</option>
-                  </select>
-                </td>
-                <td style={{ padding: '15px', textAlign: 'right', color: '#00c853', fontWeight: 900 }}>${order.totalPrice}</td>
-              </tr>
-            ))}
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td colSpan="3" style={{ padding: '30px', textAlign: 'center', color: '#666' }}>No matching orders found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+<div className="orders-scroll-container">
+  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+    <thead style={{ background: '#161616', fontSize: '12px', color: '#888', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #222' }}>
+      <tr>
+        <th style={{ padding: '15px', textAlign: 'left' }}>CUSTOMER</th>
+        <th style={{ padding: '15px', textAlign: 'left' }}>FULFILLMENT STATUS</th>
+        <th style={{ padding: '15px', textAlign: 'right' }}>TOTAL PAID</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredOrders.map(order => (
+        <tr key={order._id} style={{ borderBottom: '1px solid #222' }} className="order-row">
+          <td style={{ padding: '15px', fontWeight: '500' }}>{order.shippingInfo?.customerName || 'Guest'}</td>
+          <td style={{ padding: '15px' }}>
+            <select 
+              className={`status-select ${getStatusClass(order.status)}`} 
+              value={order.status} 
+              onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+            >
+              {/* 🔥 ТЕПЕРЬ ВСЕ VALUE СТРОГО НА АНГЛИЙСКОМ */}
+              <option value="Pending">New</option> 
+              <option value="Shipped">In Transit</option> 
+              <option value="Completed">Completed</option>
+            </select>
+          </td>
+          <td style={{ padding: '15px', textAlign: 'right', color: '#00c853', fontWeight: 900 }}>${order.totalPrice}</td>
+        </tr>
+      ))}
+      {filteredOrders.length === 0 && (
+        <tr>
+          <td colSpan="3" style={{ padding: '30px', textAlign: 'center', color: '#666' }}>No matching orders found.</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</div>
 
       <h2 style={{ marginTop: '50px', marginBottom: '20px' }}>📦 Available Catalog Items ({filteredProducts.length})</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }} className="catalog-grid">
